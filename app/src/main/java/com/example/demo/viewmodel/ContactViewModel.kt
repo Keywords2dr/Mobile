@@ -19,6 +19,9 @@ class ContactViewModel(application: Application) : AndroidViewModel(application)
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery
 
+    private val _userMessage = MutableStateFlow<String?>(null)
+    val userMessage: StateFlow<String?> = _userMessage
+
     val contacts: StateFlow<List<Contact>> = dao.getAllContacts()
         .stateIn(
             scope = viewModelScope,
@@ -49,6 +52,7 @@ class ContactViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             dao.insertContact(Contact(name = name, phone = phone))
         }
+        _userMessage.value = "Đã thêm liên hệ"
         return true
     }
 
@@ -57,6 +61,7 @@ class ContactViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             dao.updateContact(Contact(id = id, name = name, phone = phone))
         }
+        _userMessage.value = "Đã lưu thay đổi"
         return true
     }
 
@@ -64,9 +69,14 @@ class ContactViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             dao.deleteContact(contact)
         }
+        _userMessage.value = "Đã xóa liên hệ"
     }
 
     fun updateSearchQuery(query: String) {
         _searchQuery.value = query
+    }
+
+    fun clearUserMessage() {
+        _userMessage.value = null
     }
 }

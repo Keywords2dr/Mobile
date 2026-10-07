@@ -30,6 +30,14 @@ fun ContactListScreen(
 
     val searchQuery by viewModel.searchQuery.collectAsState()
     val filteredContacts by viewModel.filteredContacts.collectAsState()
+    val userMessage by viewModel.userMessage.collectAsState()
+
+    LaunchedEffect(userMessage) {
+        userMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            viewModel.clearUserMessage()
+        }
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
@@ -93,12 +101,11 @@ fun ContactListScreen(
             Button(
                 onClick = {
                     val success = viewModel.addContact(name, phone)
-                    scope.launch {
-                        if (success) {
-                            snackbarHostState.showSnackbar("Đã thêm liên hệ")
-                            name = ""
-                            phone = ""
-                        } else {
+                    if (success) {
+                        name = ""
+                        phone = ""
+                    } else {
+                        scope.launch {
                             snackbarHostState.showSnackbar("Vui lòng nhập đầy đủ tên và số điện thoại")
                         }
                     }
@@ -117,9 +124,6 @@ fun ContactListScreen(
             onConfirm = {
                 viewModel.deleteContact(toDelete)
                 contactPendingDelete = null
-                scope.launch {
-                    snackbarHostState.showSnackbar("Đã xóa liên hệ")
-                }
             },
             onCancel = { contactPendingDelete = null }
         )
