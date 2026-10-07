@@ -41,6 +41,5 @@ fun ContactListItem(
                 Icon(Icons.Default.Delete, contentDescription = "Xóa")
             }
         }
-        Divider()
     }
 }

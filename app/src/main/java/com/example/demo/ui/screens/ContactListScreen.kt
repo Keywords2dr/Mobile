@@ -18,7 +18,10 @@ import com.example.demo.viewmodel.ContactViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun ContactListScreen(viewModel: ContactViewModel) {
+fun ContactListScreen(
+    viewModel: ContactViewModel,
+    onContactClick: (Contact) -> Unit
+) {
     var name by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var contactPendingDelete by remember { mutableStateOf<Contact?>(null) }
@@ -32,6 +35,7 @@ fun ContactListScreen(viewModel: ContactViewModel) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .imePadding()
                 .padding(16.dp)
         ) {
             Text(
@@ -57,7 +61,7 @@ fun ContactListScreen(viewModel: ContactViewModel) {
                 items(viewModel.filteredContacts, key = { it.id }) { contact ->
                     ContactListItem(
                         contact = contact,
-                        onClick = { viewModel.selectContact(contact) },
+                        onClick = { onContactClick(contact) },
                         onDeleteClick = { contactPendingDelete = contact }
                     )
                 }
@@ -101,29 +105,6 @@ fun ContactListScreen(viewModel: ContactViewModel) {
                 Text("Thêm liên hệ")
             }
         }
-    }
-
-    val editingContact = viewModel.selectedContact
-    if (editingContact != null) {
-        EditContactDialog(
-            contact = editingContact,
-            onSave = { newName, newPhone ->
-                val success = viewModel.updateContact(editingContact.id, newName, newPhone)
-                scope.launch {
-                    if (success) {
-                        viewModel.clearSelection()
-                        snackbarHostState.showSnackbar("Đã lưu thay đổi")
-                    } else {
-                        snackbarHostState.showSnackbar("Vui lòng nhập đầy đủ tên và số điện thoại")
-                    }
-                }
-            },
-            onDelete = {
-                contactPendingDelete = editingContact
-                viewModel.clearSelection()
-            },
-            onDismiss = { viewModel.clearSelection() }
-        )
     }
 
     val toDelete = contactPendingDelete

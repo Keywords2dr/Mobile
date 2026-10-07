@@ -16,9 +16,6 @@ class ContactViewModel : ViewModel() {
     var searchQuery by mutableStateOf("")
         private set
 
-    var selectedContact by mutableStateOf<Contact?>(null)
-        private set
-
     val filteredContacts: List<Contact>
         get() = if (searchQuery.isBlank()) {
             contacts
@@ -46,26 +43,12 @@ class ContactViewModel : ViewModel() {
         if (name.isBlank() || phone.isBlank()) return false
         val index = contacts.indexOfFirst { it.id == id }
         if (index == -1) return false
-        val updated = Contact(id, name, phone)
-        contacts[index] = updated
-        selectedContact = updated
+        contacts[index] = Contact(id, name, phone)
         return true
     }
 
     fun deleteContact(contact: Contact) {
         contacts.remove(contact)
-        if (selectedContact?.id == contact.id) {
-            selectedContact = null
-        }
-    }
-
-    fun selectContact(contact: Contact) {
-        selectedContact = contact
-    }
-
-
-    fun clearSelection() {
-        selectedContact = null
     }
 
     fun updateSearchQuery(query: String) {
