@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -36,7 +38,8 @@ class MainActivity : ComponentActivity() {
                         arguments = listOf(navArgument("contactId") { type = NavType.IntType })
                     ) { backStackEntry ->
                         val contactId = backStackEntry.arguments?.getInt("contactId")
-                        val contact = viewModel.contacts.firstOrNull { it.id == contactId }
+                        val contacts by viewModel.contacts.collectAsState()
+                        val contact = contacts.firstOrNull { it.id == contactId }
                         if (contact != null) {
                             ContactDetailScreen(
                                 contact = contact,

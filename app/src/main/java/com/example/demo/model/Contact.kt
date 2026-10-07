@@ -1,3 +1,11 @@
 package com.example.demo.model
 
-data class Contact(val id: Int, val name: String, val phone: String)
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "contacts")
+data class Contact(
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val name: String,
+    val phone: String
+)

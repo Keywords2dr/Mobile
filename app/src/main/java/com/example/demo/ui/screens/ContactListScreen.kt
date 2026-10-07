@@ -28,6 +28,9 @@ fun ContactListScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+    val searchQuery by viewModel.searchQuery.collectAsState()
+    val filteredContacts by viewModel.filteredContacts.collectAsState()
+
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { padding ->
@@ -47,7 +50,7 @@ fun ContactListScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
-                value = viewModel.searchQuery,
+                value = searchQuery,
                 onValueChange = { viewModel.updateSearchQuery(it) },
                 label = { Text("Tìm kiếm theo tên hoặc số điện thoại") },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
@@ -58,7 +61,7 @@ fun ContactListScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             LazyColumn(modifier = Modifier.weight(1f)) {
-                items(viewModel.filteredContacts, key = { it.id }) { contact ->
+                items(filteredContacts, key = { it.id }) { contact ->
                     ContactListItem(
                         contact = contact,
                         onClick = { onContactClick(contact) },

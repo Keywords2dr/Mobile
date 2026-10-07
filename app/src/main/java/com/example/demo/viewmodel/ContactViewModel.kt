@@ -1,57 +1,72 @@
 package com.example.demo.viewmodel
 
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.demo.data.AppDatabase
 import com.example.demo.model.Contact
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
-class ContactViewModel : ViewModel() {
-    private var nextId = 1
+class ContactViewModel(application: Application) : AndroidViewModel(application) {
 
-    var contacts = mutableStateListOf<Contact>()
-        private set
+    private val dao = AppDatabase.getInstance(application).contactDao()
 
-    var searchQuery by mutableStateOf("")
-        private set
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery
 
-    val filteredContacts: List<Contact>
-        get() = if (searchQuery.isBlank()) {
+    val contacts: StateFlow<List<Contact>> = dao.getAllContacts()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    val filteredContacts: StateFlow<List<Contact>> = combine(
+        contacts,
+        _searchQuery
+    ) { contacts, query ->
+        if (query.isBlank()) {
             contacts
         } else {
             contacts.filter {
-                it.name.contains(searchQuery, ignoreCase = true) ||
-                        it.phone.contains(searchQuery, ignoreCase = true)
+                it.name.contains(query, ignoreCase = true) ||
+                        it.phone.contains(query, ignoreCase = true)
             }
         }
-
-    init {
-        addContact("Nguyen Van A", "0123456789")
-        addContact("Le Thi B", "0987654321")
-        addContact("Tran Van C", "0121987654")
-    }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 
     fun addContact(name: String, phone: String): Boolean {
         if (name.isBlank() || phone.isBlank()) return false
-        contacts.add(Contact(nextId, name, phone))
-        nextId++
+        viewModelScope.launch {
+            dao.insertContact(Contact(name = name, phone = phone))
+        }
         return true
     }
 
     fun updateContact(id: Int, name: String, phone: String): Boolean {
         if (name.isBlank() || phone.isBlank()) return false
-        val index = contacts.indexOfFirst { it.id == id }
-        if (index == -1) return false
-        contacts[index] = Contact(id, name, phone)
+        viewModelScope.launch {
+            dao.updateContact(Contact(id = id, name = name, phone = phone))
+        }
         return true
     }
 
     fun deleteContact(contact: Contact) {
-        contacts.remove(contact)
+        viewModelScope.launch {
+            dao.deleteContact(contact)
+        }
     }
 
     fun updateSearchQuery(query: String) {
-        searchQuery = query
+        _searchQuery.value = query
     }
 }
