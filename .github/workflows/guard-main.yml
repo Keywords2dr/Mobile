@@ -1,0 +1,23 @@
+name: Guard main
+
+on:
+  pull_request_target:
+    types: [opened, reopened, edited]
+    branches: [main]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login != 'Keywords2dr'
+    steps:
+      - name: Close PR that targets main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr comment "$PR" --body "PR vao main khong duoc chap nhan. Hay mo lai PR voi base la dev."
+          gh pr close "$PR"
